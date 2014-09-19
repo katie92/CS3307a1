@@ -62,7 +62,7 @@ public:
 							if(temp_id == user_id){ // if the id matches, then print information
 								cout<<
 									"client ID: " << user_id <<
-									"\chequing: $ " << temp_chequing <<
+									"\tchequing: $ " << temp_chequing <<
 									"\tsavings: $ " << temp_savings << endl;
 							}
 						}
@@ -105,10 +105,60 @@ public:
 class Client{
 private:
 	int num;
-
+	double savingsBalance;
+	double chequingBalance;
 public:
-	void deposit(){
 
+
+	Client(int id) {
+		this->num=id;
+		this->savingsBalance  = 0;
+		this->chequingBalance  = 0;
+	}
+
+	Client(int id, double savingsBalance, double chequingBalance) {
+		this->num=id;
+		this->savingsBalance  = savingsBalance;
+		this->chequingBalance  = chequingBalance;
+	}
+
+	void deposit() {
+		cout << "Deposit Amount: $";
+		double deposit;
+		cin >> deposit;
+
+		cout << "Deposit to Savings or Chequing (s|c)";
+		char sc;
+		cin >> sc;
+		if (sc == 's') savingsBalance += deposit;
+		if (sc == 'c') chequingBalance += deposit;
+
+		cout << "Updated ";
+		view_balance();
+	}
+
+	void withdraw(){
+		cout << "\nWithdraw Amount: $";
+		double withdraw;
+		cin >> withdraw;
+
+		cout << "Withdraw to Savings or Chequing (s|c)";
+		char sc;
+		cin >> sc;
+		if (sc == 's') savingsBalance -= withdraw;
+		if (sc == 'c') {
+			if ((chequingBalance - withdraw) <= 1000) {
+				cout << "Warning - Resulting balance will be less then $1000 - a $2 charge will be levied, proceed? (y|n)";
+				char answer;
+				cin >> answer;
+				if (answer == 'y')
+					chequingBalance -= (withdraw + 2.);
+			} else {
+				chequingBalance -= withdraw;
+			}
+		}
+		cout << "Updated ";
+		view_balance();
 	}
 	void check_sufficient_funds(){
 
@@ -117,6 +167,9 @@ public:
 
 	}
 	void view_balance(){
+		cout << "Client Balance:\n\n " <<
+				"\tSavings:\t$" << savingsBalance <<
+				"\n\tChequing:\t$" <<	chequingBalance << endl;
 
 	}
 	void warning_message(){
@@ -127,12 +180,39 @@ public:
 	}
 
 	void menu(){
-			cout<<"-----------------MENU CLIENT--------------------------\n\t"
-					"1 - deposit or withdraw \n\t"
-					"2 - transfer\n\t"
-					"3 - view balance\n\t"
-					"4 - open new account"<< endl;
-		}
+		char action;
+		do {
+			cout<<"\n-----------------MENU CLIENT--------------------------\n\t"
+					"1 - deposit\n\t"
+					"2 - withdraw\n\t"
+					"3 - transfer\n\t"
+					"4 - view balance\n\t"
+					"5 - exit"<< endl;
+
+			cin >> action;
+
+			switch(action){
+				case '1':
+					deposit();
+					break;
+				case '2':
+					withdraw();
+					break;
+				case '3':
+					transfer();
+					break;
+				case '4':
+					view_balance();
+					break;
+				case '5':
+					break;
+				default:
+					cout << "select from the menu" << endl;
+			}
+
+		} while (action != '5');
+
+	}
 };
 //=============================== Database class =============================================
 
@@ -185,7 +265,7 @@ public:
 			m.menu();
 		}
 		else if(user_type == "client"){
-			Client c;
+			Client c(num, savings, chequing);
 			c.menu();
 		}
 		//else if (type == "maint").............
