@@ -95,7 +95,7 @@ public:
 				// check id
 				while (myReadFile >> temp_id >> temp_type >> temp_chequing >> temp_savings) {
 					if (temp_id == open_num) {
-						cout << "Client ID already exists, try another..";
+						cout << "Client ID already exists, try another..\n\n";
 						exists = true;
 					}
 					tempFile << temp_id << "\t" << temp_type << "\t"
@@ -313,8 +313,11 @@ public:
 				cout << "Warning - Resulting balance will be less then $1000 - a $2 charge will be levied, proceed? (y|n)";
 				char answer;
 				cin >> answer;
-				if (answer == 'y')
-					chequingBalance -= (withdraw + 2.);
+				if (answer == 'y'){
+					if (chequingBalance <= ( withdraw + 2))
+						cout << "Insufficient funds";
+					else chequingBalance -= (withdraw + 2.);
+				}
 			} else {
 				chequingBalance -= withdraw;
 			}
@@ -337,12 +340,20 @@ public:
 		cin >> transfer_amount;
 
 		if (action ==1){
-			savingsBalance = savingsBalance + transfer_amount;
-			chequingBalance = chequingBalance - transfer_amount;
+			if (chequingBalance-transfer_amount < 0){
+				cout << "Insufficient funds in chequing account\n\n";
+			} else {
+				savingsBalance = savingsBalance + transfer_amount;
+				chequingBalance = chequingBalance - transfer_amount;
+		}
 		}
 		else if(action == 2){
-			savingsBalance = savingsBalance - transfer_amount;
-			chequingBalance = chequingBalance + transfer_amount;
+			if (savingsBalance-transfer_amount < 0){
+					cout << "Insufficient funds in chequing account\n\n";
+			} else {
+				savingsBalance = savingsBalance - transfer_amount;
+				chequingBalance = chequingBalance + transfer_amount;
+			}
 		}
 		update_database();
 		view_balance();
