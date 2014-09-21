@@ -3,8 +3,8 @@
 #include <string.h>
 #include <iomanip>
 
-
 using namespace std;
+
 //=============================== Manager class =============================================
 class Manager{
 private:
@@ -17,57 +17,57 @@ public:
 		int close_num;
 		cin >> close_num;
 
-		bool deleted = 0;
+		double c = chequing_balance(close_num);
+		double s = savings_balance(close_num);
+		if ( c <= 0.001 && s  <= 0.001){ // if the balance is ==0 then close
+			bool deleted = 0;
 
-		ifstream myReadFile;
-		myReadFile.open("database.txt");
+			ifstream myReadFile;
+			myReadFile.open("database.txt");
 
-		ofstream tempFile;
-		tempFile.open("temp.txt");
+			ofstream tempFile;
+			tempFile.open("temp.txt");
 
-		int temp_id;
-		double temp_chequing, temp_savings;
-		string temp_type;
-
-		// while not found id to be deleted, copy to temporary file
-		// skip line to be deleted
-		// rename temporary file to "database.txt"
-		if (myReadFile.is_open()) {
-			while (!myReadFile.eof()) {
-
-				// check id
-
-				while (myReadFile >> temp_id >> temp_type >> temp_chequing
-						>> temp_savings) {
-					if (temp_id != close_num) {
-						tempFile << temp_id << "\t" << temp_type << "\t"
-								<<  setprecision(2) << fixed << temp_chequing <<"\t"
-								<<  setprecision(2) << fixed << temp_savings<< "\n" ;
+			int temp_id;
+			double temp_chequing, temp_savings;
+			string temp_type;
+			if (myReadFile.is_open()) {
+				while (!myReadFile.eof()) {
+					while (myReadFile >> temp_id >> temp_type >> temp_chequing
+							>> temp_savings) {
+						if (temp_id != close_num) {
+							tempFile << temp_id << "\t" << temp_type << "\t"
+									<<  setprecision(2) << fixed << temp_chequing <<"\t"
+									<<  setprecision(2) << fixed << temp_savings<< "\n" ;
+						}
+						if (temp_id == close_num) { // if is a client, then display information
+								deleted = 1;
+						}
 					}
-					if (temp_id == close_num) { // if is a client, then display information
-							deleted = 1;
-					}
-
 				}
 			}
-		}
-		myReadFile.close();
-		tempFile.close();
+			myReadFile.close();
+			tempFile.close();
 
-		remove("database.txt");
-		rename("temp.txt","database.txt");
+			remove("database.txt");
+			rename("temp.txt","database.txt");
 
-		if (deleted){
-			cout << "account " << close_num << " was deleted" << endl;
+			if (deleted){
+				cout << "account " << close_num << " was deleted" << endl;
+			}
+			else{
+				cout << "account was not found" << endl;
+			}
 		}
-		else{
-			cout << "account was not found" << endl;
-		}
+		else
+			cout << "the account balance is not $ 0.00 so account was not closed\n";
 	}
 
 	void open_account(){
 		cout << "open account" << endl; // add information to database
-
+		// assign an id number
+		// ask for deposit amounts
+		// append information to database
 	}
 
 	void display_all(){
@@ -122,11 +122,58 @@ public:
 						cout << "client ID: " << user_id << "\tchequing: $ "
 								<<  setprecision(2) << fixed << temp_chequing << "\tsavings: $ "
 								<<  setprecision(2) << fixed << temp_savings << endl;
+						return;
 					}
 				}
 			}
 		}
 		myReadFile.close();
+
+		cout << "the client id does not exist\n";
+	}
+
+	double chequing_balance(int user_id){// shows details of a particular client
+
+		ifstream myReadFile;
+		myReadFile.open("database.txt");
+		int temp_id;
+		double temp_chequing, temp_savings;
+		string temp_type;
+
+		if (myReadFile.is_open()) {
+			while (!myReadFile.eof()) {
+				while (myReadFile >> temp_id >> temp_type >> temp_chequing
+						>> temp_savings) {
+					if (temp_id == user_id) {
+						return temp_chequing;
+					}
+				}
+			}
+		}
+		myReadFile.close();
+		return 0.0;
+	}
+
+	double savings_balance(int user_id){// shows details of a particular client
+
+		ifstream myReadFile;
+		myReadFile.open("database.txt");
+		int temp_id;
+		double temp_chequing, temp_savings;
+		string temp_type;
+
+		if (myReadFile.is_open()) {
+			while (!myReadFile.eof()) {
+				while (myReadFile >> temp_id >> temp_type >> temp_chequing
+						>> temp_savings) {
+					if (temp_id == user_id) {
+						return temp_savings;
+					}
+				}
+			}
+		}
+		myReadFile.close();
+		return 0.0;
 	}
 
 	void view_aggregate(){
@@ -213,7 +260,6 @@ private:
 	double chequingBalance;
 public:
 
-
 	Client(int id) {
 		this->num=id;
 		this->savingsBalance  = 0;
@@ -251,12 +297,12 @@ public:
 		char sc;
 		cin >> sc;
 
-		if (sc == 's' && savingsBalance > withdraw)
+		if (sc == 's' && savingsBalance >= withdraw)
 			savingsBalance -= withdraw;
 		else if (sc == 's' && savingsBalance < withdraw) // if insifficient funds warning
 			cout << "Warning - Insufficient funds\n";
 
-		if (sc == 'c' && chequingBalance > withdraw) {
+		if (sc == 'c' && chequingBalance >= withdraw) {
 			if ((chequingBalance - withdraw) <= 1000) {
 				cout << "Warning - Resulting balance will be less then $1000 - a $2 charge will be levied, proceed? (y|n)";
 				char answer;
@@ -299,10 +345,6 @@ public:
 		cout << "Client Balance:\n\n " <<
 				"\tSavings:\t$" <<  setprecision(2) << fixed << savingsBalance <<
 				"\n\tChequing:\t$" << setprecision(2) << fixed << chequingBalance << endl;
-	}
-
-	void open_new_account(){
-
 	}
 
 	void update_database(){ // find id number and deposits or withdraws amounts
@@ -374,7 +416,7 @@ public:
 					cout << "select from the menu" << endl;
 			}
 
-		} while (action != '5');
+		} while (action != '6');
 
 	}
 
@@ -394,6 +436,7 @@ public:
 		cout << "enter your login id: ";
 		cin >> num ;
 	}
+
 	void get_user_info(){ // retrieves user information from database
 		ifstream myReadFile;
 		 myReadFile.open("database.txt");
