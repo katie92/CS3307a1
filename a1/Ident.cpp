@@ -66,7 +66,59 @@ public:
 	}
 
 	void open_account(){
-		cout << "open account" << endl; // add information to database
+		cout << "Open new customer account\n" << endl; // add information to database
+		int open_num;
+		double open_savings, open_chequing;
+		cout << "\nEnter new account number: ";
+		cin >> open_num;
+		cout << "\nEnter initial amount in chequing: ";
+		cin >> open_savings;
+		cout << "\nEnter initial amount in savings: ";
+		cin >> open_savings;
+
+		ifstream myReadFile;
+		myReadFile.open("database.txt");
+
+		ofstream tempFile;
+		tempFile.open("temp.txt");
+
+		int temp_id;
+		bool exists = false;
+		double temp_chequing, temp_savings;
+			string temp_type;
+
+		// while not found id to be deleted, copy to temporary file
+		// skip line to be deleted
+		// rename temporary file to "database.txt"
+		if (myReadFile.is_open()) {
+			while (!myReadFile.eof()) {
+				// check id
+				while (myReadFile >> temp_id >> temp_type >> temp_chequing >> temp_savings) {
+					if (temp_id == open_num) {
+						cout << "Client ID already exists, try another..";
+						exists = true;
+					}
+					tempFile << temp_id << "\t" << temp_type << "\t"
+							<<  setprecision(2) << fixed << temp_chequing <<"\t"
+							<<  setprecision(2) << fixed << temp_savings<< "\n" ;
+
+				}
+			}
+		}
+		if (!exists) {
+			tempFile << open_num << "\t" << "client" << "\t"
+				<<  setprecision(2) << fixed << open_chequing <<"\t"
+				<<  setprecision(2) << fixed << open_savings << "\n" ;
+			cout << "New Client added ...\n";
+		}
+
+		myReadFile.close();
+		tempFile.close();
+
+		remove("database.txt");
+		rename("temp.txt","database.txt");
+
+
 
 	}
 
@@ -201,7 +253,7 @@ public:
 				default:
 					cout << "select from the menu" << endl;
 			}
-		}while(action !=6);
+		}while(action != '6');
 		// go back to menu
 	}
 };
@@ -374,7 +426,7 @@ public:
 					cout << "select from the menu" << endl;
 			}
 
-		} while (action != '5');
+		} while (action != '6');
 
 	}
 
@@ -391,7 +443,7 @@ private:
 public:
 
 	void enter_num(){
-		cout << "enter your login id: ";
+		cout << "Banking System:\n\nEnter your login id (manager = 1, maintenance = 2): ";
 		cin >> num ;
 	}
 	void get_user_info(){ // retrieves user information from database
