@@ -2,6 +2,8 @@
 #include <fstream>
 #include <string.h>
 #include <iomanip>
+#include <time.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -9,7 +11,9 @@ using namespace std;
 class Manager{
 private:
 	int num, action;
+	bool trace;
 public:
+
 	void close_account(){
 
 		cout << "close account" << endl; // delete information from database
@@ -64,12 +68,13 @@ public:
 	}
 
 	void open_account(){
-<<<<<<< HEAD
-		cout << "open account" << endl; // add information to database
+
+//		cout << "open account" << endl;
+
+		// add information to database
 		// assign an id number
 		// ask for deposit amounts
 		// append information to database
-=======
 		cout << "Open new customer account\n" << endl; // add information to database
 		int open_num;
 		double open_savings, open_chequing;
@@ -122,9 +127,6 @@ public:
 		remove("database.txt");
 		rename("temp.txt","database.txt");
 
-
-
->>>>>>> branch 'master' of https://github.com/katie92/CS3307a1.git
 	}
 
 	void display_all(){
@@ -149,7 +151,7 @@ public:
 					if (temp_type == "client") { // if is a client, then display information
 
 						cout << "\t " << temp_id << "\t " <<
-								setprecision(2) << fixed<< temp_chequing<< "\t \t" <<
+								setprecision(2) << fixed << temp_chequing << "\t \t" <<
 								setprecision(2) << fixed << temp_savings << endl;
 					}
 				}
@@ -313,8 +315,12 @@ public:
 class Client{
 private:
 	int num;
+	bool trace;
 	double savingsBalance;
 	double chequingBalance;
+	ofstream traceFile;
+   time_t timer;
+
 public:
 
 	Client(int id) {
@@ -322,11 +328,33 @@ public:
 		this->savingsBalance  = 0;
 		this->chequingBalance  = 0;
 	}
-
+	~Client() {
+		if (trace)
+		traceFile.close();
+	}
 	Client(int id, double savingsBalance, double chequingBalance) {
 		this->num=id;
 		this->savingsBalance  = savingsBalance;
 		this->chequingBalance  = chequingBalance;
+		ifstream maintFile;
+		maintFile.open("maintenance.txt");
+		char a;
+		maintFile >> a;
+
+		if (a == 'y') {
+			trace = true;
+			string fname = "clientTrace";
+			char buff[100];
+			fname.append(itoa(num,buff,10));
+			fname.append(".txt");
+			traceFile.open(fname.c_str());
+
+			time (&timer);
+			struct tm *now = localtime( & timer );
+
+		} else
+			trace = false;
+
 	}
 
 	void deposit() {
@@ -341,6 +369,14 @@ public:
 		if (sc == 'c') chequingBalance += deposit;
 
 		cout << "Updated ";
+
+		if (trace) {
+			time (&timer);
+		    struct tm *now = localtime( & timer );
+			traceFile << "User ID:" << num << " Time:" << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << " - deposit()\n";
+
+		}
+
 		update_database();
 		view_balance();
 	}
@@ -379,6 +415,13 @@ public:
 		cout << "Updated ";
 		update_database();
 		view_balance();
+		if (trace) {
+			time (&timer);
+			struct tm *now = localtime( & timer );
+
+			traceFile << "User ID:" << num << " Time:" << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << " - withdraw()\n";
+
+		}
 	}
 
 	void transfer(){// change information in database
@@ -408,6 +451,12 @@ public:
 		}
 		update_database();
 		view_balance();
+		if (trace) {
+				time (&timer);
+				struct tm *now = localtime( & timer );
+
+				traceFile << "User ID:" << num << " Time:" << now->tm_hour << ":" << now->tm_min << ":" << now->tm_sec << " - transfer()\n";
+		}
 	}
 	void view_balance(){
 		cout << "Client Balance:\n\n " <<
@@ -489,6 +538,51 @@ public:
 	}
 
 };
+
+class Maintenance {
+
+private:
+	bool trace;
+	ofstream myWriteFile;
+
+public:
+
+	void menu ()  {
+		char action;
+		do {
+		cout<<"-----------------MAINTENANCE MENU --------------------------\n\t"
+						"1 - turn on/off trace\n\t"
+						"2 - dump user trace\n\t"
+						"3 - exit"<< endl;
+
+		cin >> action;
+
+		switch(action) {
+			case '1':
+				cout << "\nTurn on trace client trace (y|n)? ";
+				char ans;
+				cin >> ans;
+				myWriteFile.open("maintenance.txt");
+				if (ans == 'y' ) {
+					myWriteFile << "y";
+				} else {
+					myWriteFile << "n";
+				}
+				myWriteFile.close();
+				break;
+			case '2':
+				break;
+			case '3':
+				break;
+			default:
+				cout << "select from the menu" << endl;
+		}
+
+		} while (action !='3');
+	}
+
+
+};
 //=============================== Database class =============================================
 
 
@@ -501,8 +595,12 @@ private:
 public:
 
 	void enter_num(){
+
 		cout << "Banking System:\n\nEnter your login id (manager = 1, maintenance = 2): ";
 		cin >> num ;
+
+
+
 	}
 
 	void get_user_info(){ // retrieves user information from database
@@ -537,16 +635,27 @@ public:
 							"\n------------------------------------------------"<< endl;
 	}
 
+
+
+
+
 	// switch roles depending on who is using the program
 	void login(){
-		if (user_type=="manager"){
+
+
+
+		if (user_type=="maint"){
+			Maintenance m;
+			m.menu();
+		} else if (user_type=="manager"){
 			Manager m;
 			m.menu();
 		}
-		else if(user_type == "client"){
+		else if(user_type == "client") {
 			Client c(num, savings, chequing);
 			c.menu();
 		}
+
 		//else if (type == "maint").............
 	}
 };
