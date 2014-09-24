@@ -349,8 +349,7 @@ public:
 			fname.append(".txt");
 			traceFile.open(fname.c_str());
 
-			time (&timer);
-			struct tm *now = localtime( & timer );
+
 
 		} else
 			trace = false;
@@ -402,7 +401,7 @@ public:
 				cin >> answer;
 				if (answer == 'y'){
 					if (chequingBalance <= ( withdraw + 2))
-						cout << "Insufficient funds";
+						cout << "Insufficient funds\n";
 					else chequingBalance -= (withdraw + 2.);
 				}
 			} else {
@@ -506,8 +505,7 @@ public:
 					"2 - withdraw\n\t"
 					"3 - transfer\n\t"
 					"4 - view balance\n\t"
-					"5 - transfer\n\t"
-					"6 - exit"<< endl;
+					"5 - exit"<< endl;
 
 			cin >> action;
 
@@ -525,15 +523,12 @@ public:
 					view_balance();
 					break;
 				case '5':
-					transfer();
-					break;
-				case '6':
 					break;
 				default:
 					cout << "select from the menu" << endl;
 			}
 
-		} while (action != '6');
+		} while (action != '5');
 
 	}
 
@@ -544,6 +539,7 @@ class Maintenance {
 private:
 	bool trace;
 	ofstream myWriteFile;
+	ofstream myReadFile;
 
 public:
 
@@ -560,10 +556,10 @@ public:
 		switch(action) {
 			case '1':
 				cout << "\nTurn on trace client trace (y|n)? ";
-				char ans;
-				cin >> ans;
+				char ans1;
+				cin >> ans1;
 				myWriteFile.open("maintenance.txt");
-				if (ans == 'y' ) {
+				if (ans1 == 'y' ) {
 					myWriteFile << "y";
 				} else {
 					myWriteFile << "n";
@@ -571,6 +567,10 @@ public:
 				myWriteFile.close();
 				break;
 			case '2':
+				cout << "Enter User ID to dump trace: ";
+				int ans2;
+				cin >> ans2;
+				dump_user(ans2);
 				break;
 			case '3':
 				break;
@@ -581,6 +581,29 @@ public:
 		} while (action !='3');
 	}
 
+
+void dump_user(int id) {
+
+	string fname = "clientTrace";
+	char buff[100];
+	ifstream myReadFile;
+
+	fname.append(itoa(id,buff,10));
+	fname.append(".txt");
+	myReadFile.open(fname.c_str());
+	if (!myReadFile.is_open()) {
+		cout << "No trace for this user.,. \n\n";
+		return;
+	}
+	string temp_line ="";
+	cout << "Dumping activity of user: " << id << "\n\n";
+	while (!myReadFile.eof()) {
+		getline( myReadFile, temp_line );
+		cout << temp_line << endl;
+
+	}
+
+}
 
 };
 //=============================== Database class =============================================
@@ -623,6 +646,8 @@ public:
 		}
 
 		myReadFile.close();
+		if (user_type=="")
+			cout << "This user does not exist\n";
 	}
 
 	void display_user(){
